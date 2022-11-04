@@ -75,17 +75,10 @@ dt1
 tf <- tempfile(fileext = ".docx")
 save_as_docx("Table 1"= dt1, path = ("/Users/candaurn/Desktop/Absolute risk/Table_1.docx"))
 
-#Sample size calculation for logistic regression ----
+# Sample size calculation for logistic regression ----
 library(pmsampsize)
 samplesize <- pmsampsize(type="b", cstatistic = 0.89, parameters = 6, prevalence = 0.18, seed=123)
 samplesize #227
-
-#Store X and Y for later use
-x = data_train %>% 
-  select(-c(dvt, studyid, .id)) 
-
-y = data_train %>% 
-  select(dvt)
 
 # Cross-validation methods ----
 fitControl <- trainControl(method = "repeatedcv", # Cross-validation, default is bootstrap
@@ -110,22 +103,21 @@ glm_mod$results # AUC, Sens, Spec with SD
 glm_mod$finalModel
 summary(glm_mod)
 
-# Predictions with test data
+## Predictions with test data ----
 glm.pred <- predict(glm_mod,
                     newdata = data_test)
 
-# Probabilities with test data
+## Probabilities with test data ----
 glm.probs <- predict(glm_mod,
                      newdata = data_test,
                      type = "prob",  
                      se.fit = TRUE) 
 head(glm.probs)
 
-# Confusion matrix
+## Confusion matrix ----
 confusionMatrix(data = glm.pred, 
                 reference = data_test$dvt,
                 positive = "Pos")
-hist(glm.probs$Pos)
 
 # Fit Random Forest ---- 
 set.seed(825)
@@ -153,8 +145,7 @@ rf_mod.2$results
 rf_mod.2$finalModel
 
 ## Predict on test data ----
-#ranger
-ranger.pred <- predict(rf_mod.1, # for confusion matrix
+ranger.pred <- predict(rf_mod.1,  # for confusion matrix
                        data_test,
                        type = "raw") 
 
@@ -183,9 +174,7 @@ confusionMatrix(data = rf.pred,
                 mode = "everything",
                 positive = "Pos") 
 
-# Fit SVM ----
-
-## fit a linear SVM
+# Fit linear SVM ----
 set.seed(825)
 svm_mod.1 <- train(dvt ~ age + sex + ddimdich + hist + malign + altdiagn,
                    data = data_train,
@@ -202,8 +191,8 @@ svm_mod.2 <- train(dvt ~ age + sex + ddimdich + hist + malign + altdiagn,
                    importance = TRUE)
 svm_mod.2$results
 
-# Prediction on test data 
-kernlab.pred <- predict(svm_mod.1, # for confusion matrix
+## Prediction on test data ----
+kernlab.pred <- predict(svm_mod.1,
                         data_test,
                         type= "raw")
 
@@ -219,7 +208,7 @@ e1071.probs <- predict(svm_mod.2,
                        data_test,
                        type = "prob") 
 
-# Confusion matrix 
+## Confusion matrix ---- 
 confusionMatrix(data = kernlab.pred, 
                 reference = data_test$dvt,
                 #mode = "prec_recall"
