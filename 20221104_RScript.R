@@ -63,3 +63,19 @@ data_test = data_test %>% select(.id, #patient id
                                  hist, #previous history of DVT
                                  altdiagn, #alternative diagnostic
                                  dvt) 
+
+# Descriptive Table 1 ----
+dt1 = crosstable(data_train, c(age, sex, ddimdich, malign, hist, altdiagn), by=dvt, total="both", 
+                 #funs = "Mean(std)",
+                 percent_pattern="{n} ({p_col})", percent_digits=1) %>%
+  as_flextable()
+dt1
+
+# Export to word 
+tf <- tempfile(fileext = ".docx")
+save_as_docx("Table 1"= dt1, path = ("/Users/candaurn/Desktop/Absolute risk/Table_1.docx"))
+
+#Sample size calculation for logistic regression ----
+library(pmsampsize)
+samplesize <- pmsampsize(type="b", cstatistic = 0.89, parameters = 6, prevalence = 0.18, seed=123)
+samplesize #227
