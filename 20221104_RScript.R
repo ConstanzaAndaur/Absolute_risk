@@ -79,3 +79,155 @@ save_as_docx("Table 1"= dt1, path = ("/Users/candaurn/Desktop/Absolute risk/Tabl
 library(pmsampsize)
 samplesize <- pmsampsize(type="b", cstatistic = 0.89, parameters = 6, prevalence = 0.18, seed=123)
 samplesize #227
+
+#Store X and Y for later use
+x = data_train %>% 
+  select(-c(dvt, studyid, .id)) 
+
+y = data_train %>% 
+  select(dvt)
+
+# Cross-validation methods ----
+fitControl <- trainControl(method = "repeatedcv", # Cross-validation, default is bootstrap
+                           number = 10,
+                           repeats = 3,
+                           classProbs = TRUE,
+                           savePredictions = TRUE,
+                           index = createFolds(data_train$dvt,5),
+                           summaryFunction = twoClassSummary) # ROC, sens, spec under 50% cut-off
+
+# Fit logistic regression ----
+set.seed(825)
+glm_mod <- train(dvt ~ age + sex + ddimdich  + hist + malign + altdiagn,
+                 data = data_train,
+                 method = "glm",
+                 family = binomial (link = 'logit'),
+                 trControl = fitControl,
+                 metric = "ROC")
+
+getTrainPerf(glm_mod) 
+glm_mod$results # AUC, Sens, Spec with SD
+glm_mod$finalModel
+summary(glm_mod)
+
+# Predictions with test data
+glm.pred <- predict(glm_mod,
+                    newdata = data_test)
+
+# Probabilities with test data
+glm.probs <- predict(glm_mod,
+                     newdata = data_test,
+                     type = "prob",  
+                     se.fit = TRUE) 
+head(glm.probs)
+
+# Confusion matrix
+confusionMatrix(data = glm.pred, 
+                reference = data_test$dvt,
+                positive = "Pos")
+hist(glm.probs$Pos)
+
+# Fit Random Forest ---- 
+set.seed(825)
+rf_mod.1 <- train(dvt ~ age + sex + ddimdich  + hist + malign + altdiagn, 
+                  data = data_train,
+                  method = "ranger",
+                  trControl = fitControl,
+                  #importance = TRUE,
+                  metric = "ROC", # to optimize the model based on ROC
+                  #ntree = 50,
+)
+rf_mod.1$results
+rf_mod.1$finalModel
+
+set.seed(825)
+rf_mod.2 <- train(dvt ~ age + sex + ddimdich  + hist + malign + altdiagn, 
+                  data = data_train,
+                  method = "rf",
+                  trControl = fitControl,
+                  #importance = TRUE,
+                  metric = "ROC", # to optimize the model based on ROC
+                  #ntree = 50,
+)
+rf_mod.2$results
+rf_mod.2$finalModel
+
+## Predict on test data ----
+#ranger
+ranger.pred <- predict(rf_mod.1, # for confusion matrix
+                       data_test,
+                       type = "raw") 
+
+ranger.probs <- predict(rf_mod.1,
+                        data_test,
+                        type = "prob")
+
+rf.pred <- predict(rf_mod.2,
+                   data_test,
+                   type = "raw") 
+
+rf.probs <- predict(rf_mod.2,
+                    data_test,
+                    type = "prob")
+
+## Confusion matrix ----
+confusionMatrix(data = ranger.pred,
+                reference = data_test$dvt,
+                #mode = "prec_recall"
+                mode = "everything",
+                positive = "Pos") 
+
+confusionMatrix(data = rf.pred,
+                reference = data_test$dvt,
+                #mode = "prec_recall"
+                mode = "everything",
+                positive = "Pos") 
+
+# Fit SVM ----
+
+## fit a linear SVM
+set.seed(825)
+svm_mod.1 <- train(dvt ~ age + sex + ddimdich + hist + malign + altdiagn,
+                   data = data_train,
+                   method = "svmLinear", #kernlab
+                   trControl = fitControl,
+                   importance = TRUE)
+
+svm_mod.1$results
+
+svm_mod.2 <- train(dvt ~ age + sex + ddimdich + hist + malign + altdiagn,
+                   data = data_train,
+                   method = "svmLinear2", #e1071
+                   trControl = fitControl,
+                   importance = TRUE)
+svm_mod.2$results
+
+# Prediction on test data 
+kernlab.pred <- predict(svm_mod.1, # for confusion matrix
+                        data_test,
+                        type= "raw")
+
+kernlab.probs <- predict(svm_mod.1, 
+                         data_test,
+                         type = "prob") 
+
+e1071.pred <- predict(svm_mod.2,
+                      data_test,
+                      type= "raw")
+
+e1071.probs <- predict(svm_mod.2, 
+                       data_test,
+                       type = "prob") 
+
+# Confusion matrix 
+confusionMatrix(data = kernlab.pred, 
+                reference = data_test$dvt,
+                #mode = "prec_recall"
+                mode = "everything",
+                positive = "Pos") 
+
+confusionMatrix(data = e1071.pred, 
+                reference = data_test$dvt,
+                #mode = "prec_recall"
+                mode = "everything",
+                positive = "Pos") 
