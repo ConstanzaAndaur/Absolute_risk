@@ -1,0 +1,20 @@
+# Clear existing data and graphics
+rm(list=ls())
+graphics.off()
+
+# Load libraries -----
+library(Hmisc)
+library(tidyverse)
+library(dplyr)
+library(rms)
+library(lubridate)
+library(ResourceSelection)
+library(caret)
+library(pROC)
+library(mice)
+library(skimr)
+library(ggplot2)
+library(GGally)
+library(ggbeeswarm)
+library(crosstable)
+library(flextable)
