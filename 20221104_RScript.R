@@ -3,29 +3,19 @@ rm(list=ls())
 graphics.off()
 
 # Load libraries -----
-library(Hmisc)
-library(tidyverse)
-library(dplyr)
-library(rms)
-library(lubridate)
-library(ResourceSelection)
-library(caret)
-library(pROC)
-library(mice)
-library(skimr)
-library(ggplot2)
-library(GGally)
-library(ggbeeswarm)
-library(crosstable)
-library(flextable)
+packages <- c("Hmisc", "tidyverse", "dplyr", "rms", "lubridate", "ResourceSelection", "caret", "pROC", 
+              "mice", "skimr", "ggplot2", "GGally", "ggbeeswarm", "crosstable", "flextable", "broom", 
+              "pander", "gridExtra", "grid", "sjPlot", "sjmisc", "sjlabelled")
 
-library(broom)
-library(pander)
-library(gridExtra)
-library(grid)
-library(sjPlot)
-library(sjmisc)
-library(sjlabelled)
+# Install packages not yet installed
+installed_packages <- packages %in% rownames(installed.packages())
+if (any(installed_packages == FALSE)) {
+  install.packages(packages[!installed_packages])
+}
+
+# Packages loading
+lapply(packages, library, character.only = TRUE) %>%
+  invisible()
 
 # Load data -----
 data <- read.csv("Y:/Research/Methodology/IPD_DVT/E_ResearchData/2_ResearchData/data_ipd_dvt_general.csv")
