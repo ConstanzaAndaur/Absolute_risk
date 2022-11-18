@@ -69,6 +69,20 @@ library(pmsampsize)
 samplesize <- pmsampsize(type="b", cstatistic = 0.89, parameters = 6, prevalence = 0.18, seed=123)
 samplesize #227
 
+# Outcome ----
+data_train$dvt = as.character(data_train$dvt)
+data_train$dvt[data_train$dvt == "0"] = "Neg"
+data_train$dvt[data_train$dvt == "1"] = "Pos"
+data_train$dvt = factor(data_train$dvt, levels = c('Neg', 'Pos'))
+
+data_train %>% 
+  dplyr::count(dvt) #1864 cases of DVT / 8138 non-cases 0.18 prevalence
+
+data_test$dvt = as.character(data_test$dvt)
+data_test$dvt[data_test$dvt == "0"] = "Neg"
+data_test$dvt[data_test$dvt == "1"] = "Pos"
+data_test$dvt = factor(data_test$dvt, levels = c('Neg', 'Pos'))
+
 # Cross-validation methods ----
 fitControl <- trainControl(method = "repeatedcv", # Cross-validation, default is bootstrap
                            number = 10,
