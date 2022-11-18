@@ -1,3 +1,6 @@
+# Absolute risk in DVT
+# Constanza L. Andaur Navarro
+
 # Clear existing data and graphics
 rm(list=ls())
 graphics.off()
