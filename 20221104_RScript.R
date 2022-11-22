@@ -353,7 +353,7 @@ ggplot(graph_data_small_long, aes(x=subject, y=probability)) +
   ) 
 ggsave("plot_subject_comparison.pdf", width = 20, height = 20, units = "cm") 
 
-# Matrix scatter plot ----
+## Matrix scatter plot ----
 
 # prepare data
 graph_plot <- graph_data[ ,1:5]
