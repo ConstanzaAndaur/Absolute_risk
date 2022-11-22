@@ -281,3 +281,28 @@ ggroc(roc.list, legacy.axes = TRUE) +
                                      size=0.5, linetype="solid", 
                                      colour ="darkblue"))
 ggsave("plot_AUC.pdf", width = 20, height = 20, units = "cm")
+
+## Density plot for frequency of observation ---- 
+
+### Prepare data frame for density plot
+graph_data <- cbind(glm.probs$Pos, ranger.probs$Pos, rf.probs$Pos, kernlab.probs$Pos, e1071.probs$Pos)
+colnames(graph_data) <- c('glm','ranger', 'randomForest', 'kernlab', 'e1071')
+graph_data <- as.data.frame(graph_data)
+graph_data <- mutate(graph_data, subject = row_number())
+
+graph_data_long <- gather(graph_data, "algorithm", "probability", glm:e1071, factor_key = TRUE) #wide to long
+
+# Plot
+ggplot(graph_data_long, aes(probability, color= algorithm)) +
+  geom_density(alpha=0.3,
+               kernel = "rectangular") + #smoothing parameter
+  ggtitle("Comparison of distribution of risk probabilities") +
+  theme_light() +
+  theme(
+    legend.position = c(0.9, 0.7),
+    legend.background = element_rect(fill="lightblue",
+                                     size=0.5, linetype="solid", 
+                                     colour ="darkblue"),
+    legend.title = element_text(colour="black", size=10, 
+                                face="bold")) 
+ggsave("plot_density.pdf", width = 20, height = 20, units = "cm")
