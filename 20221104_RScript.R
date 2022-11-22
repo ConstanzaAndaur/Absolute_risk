@@ -229,7 +229,7 @@ confusionMatrix(data = e1071.pred,
 
 # Evaluation ----
 
-## AUC plot for all five models
+## AUC plot for all five models ----
 
 rocobj1 <- plot.roc(as.numeric(glm_mod$trainingData$.outcome=='Pos'),
                     aggregate(Pos~rowIndex,glm_mod$pred,mean)[,'Pos'], 
@@ -261,7 +261,7 @@ data.auc %>%
   mutate(label_long=paste0(name,", AUC = ", paste(round(AUC,2))),
          label_AUC=paste0("AUC = ", paste(round(AUC,2)))) -> data.labels
 
-# plot on a single plot with AUC in labels
+# plot 
 ggroc(roc.list, legacy.axes = TRUE) +
   ggtitle("Area Under the Curve") +
   scale_color_discrete(labels=data.labels$label_long) +
@@ -282,9 +282,9 @@ ggroc(roc.list, legacy.axes = TRUE) +
                                      colour ="darkblue"))
 ggsave("plot_AUC.pdf", width = 20, height = 20, units = "cm")
 
-## Density plot for frequency of observation ---- 
+## Density plot for frequency of observation ----
 
-### Prepare data frame for density plot
+# Prepare data frame for density plot
 graph_data <- cbind(glm.probs$Pos, ranger.probs$Pos, rf.probs$Pos, kernlab.probs$Pos, e1071.probs$Pos)
 colnames(graph_data) <- c('glm','ranger', 'randomForest', 'kernlab', 'e1071')
 graph_data <- as.data.frame(graph_data)
@@ -292,7 +292,7 @@ graph_data <- mutate(graph_data, subject = row_number())
 
 graph_data_long <- gather(graph_data, "algorithm", "probability", glm:e1071, factor_key = TRUE) #wide to long
 
-# Plot
+# plot
 ggplot(graph_data_long, aes(probability, color= algorithm)) +
   geom_density(alpha=0.3,
                kernel = "rectangular") + #smoothing parameter
@@ -306,3 +306,49 @@ ggplot(graph_data_long, aes(probability, color= algorithm)) +
     legend.title = element_text(colour="black", size=10, 
                                 face="bold")) 
 ggsave("plot_density.pdf", width = 20, height = 20, units = "cm")
+
+## Individual subject comparison ---- 
+
+# Sequences of 10 number to obtain random subjects
+floor(runif(10, min=1, max=10002)) # 4549  566 7086 4362 1647 4855   24  808 8883 1147
+
+graph_data_2 = graph_data
+
+# Prepare data
+graph_data_small <-  graph_data_2[graph_data_2$subject  %in% c(4549, 566, 4362, 7086, 1647, 4855, 24, 808, 8883, 1174), ]
+
+graph_data_small_long <- gather(graph_data_small, "algorithm", "probability", glm:e1071, factor_key = TRUE) #wide to long
+
+label_names <- c(
+  `24` = "ID 24",
+  `566` = "ID 566",
+  `808` = "ID 808",
+  `1174` = "ID 1174",
+  `1647` = "ID 1647",
+  `4362` = "ID 4362",
+  `4549` = "ID 4549",
+  `4855` = "ID 4855",
+  `7086` = "ID 7086",
+  `8883` = "ID 8883"
+)
+
+# plot
+ggplot(graph_data_small_long, aes(x=subject, y=probability)) + 
+  geom_point(aes(colour = algorithm), size = 3) +
+  facet_grid(~subject, labeller = as_labeller(label_names), scale = "free", switch = "both") + 
+  scale_y_continuous(breaks=seq(0,0.4,0.05)) +
+  theme_bw() +
+  theme(
+    axis.text.x = element_blank(), 
+    axis.ticks.x = element_blank(), 
+    axis.title.x = element_blank(),
+    axis.title.y = element_text(size = 11, color = "black", face = "bold"),
+    legend.position = "bottom", 
+    legend.title = element_blank(),
+    legend.background = element_rect(fill="lightblue",
+                                     size=0.5, linetype="solid", 
+                                     colour ="darkblue"),
+    strip.text.x = element_text(
+      size = 8, color = "black", face = "bold.italic")
+  ) 
+ggsave("plot_subject_comparison.pdf", width = 20, height = 20, units = "cm")  
