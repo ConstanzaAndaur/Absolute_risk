@@ -8,7 +8,7 @@ graphics.off()
 # Load required packages -----
 packages <- c("Hmisc", "tidyverse", "dplyr", "rms", "lubridate", "ResourceSelection", "caret", "pROC", 
               "mice", "skimr", "ggplot2", "GGally", "ggbeeswarm", "crosstable", "flextable", "broom", 
-              "pander", "gridExtra", "grid", "sjPlot", "sjmisc", "sjlabelled")
+              "pander", "gridExtra", "grid", "sjPlot", "sjmisc", "sjlabelled", "data.table", "GGally")
 
 # Install packages not yet installed
 installed_packages <- packages %in% rownames(installed.packages())
@@ -351,4 +351,24 @@ ggplot(graph_data_small_long, aes(x=subject, y=probability)) +
     strip.text.x = element_text(
       size = 8, color = "black", face = "bold.italic")
   ) 
-ggsave("plot_subject_comparison.pdf", width = 20, height = 20, units = "cm")  
+ggsave("plot_subject_comparison.pdf", width = 20, height = 20, units = "cm") 
+
+# Matrix scatter plot ----
+
+# prepare data
+graph_plot <- graph_data[ ,1:5]
+
+# Using your function
+custom_range <- function(data, mapping, ...) { 
+  ggplot(data = data, mapping = mapping, ...) + 
+    geom_point(size=0.5) + # to resize dots
+    scale_x_continuous(limits = c(0, 1)) + # to rescale lower axes
+    scale_y_continuous(limits = c(0, 1)) 
+}
+
+ggpairs(
+  graph_plot,
+  upper = list(continuous = GGally::wrap(ggally_cor, stars = F)), # to remove stars
+  lower = list(continuous = custom_range)) # to resize points and axis scale
+
+ggsave("plot_scatter.pdf", width = 20, height = 20, units = "cm")
