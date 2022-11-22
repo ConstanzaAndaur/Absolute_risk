@@ -16,7 +16,7 @@ if (any(installed_packages == FALSE)) {
   install.packages(packages[!installed_packages])
 }
 
-# Load libraries
+# Load libraries ----
 lapply(packages, library, character.only = TRUE) 
 
 # Load data -----
@@ -31,7 +31,7 @@ data_imp <- complete(imp.mlmi, "long", include = FALSE) #TRUE still has some mis
 str(data_imp) 
 skim(data_imp)
 
-# Training and testing data set ----
+# Splitting training and testing data set ----
 data_train <- data_imp[data_imp$.imp == 1, ] #training
 data_test <- data_imp[data_imp$.imp == 2, ] #testing
 
@@ -86,7 +86,7 @@ data_test$dvt[data_test$dvt == "0"] = "Neg"
 data_test$dvt[data_test$dvt == "1"] = "Pos"
 data_test$dvt = factor(data_test$dvt, levels = c('Neg', 'Pos'))
 
-# Cross-validation methods ----
+# Cross-validation ----
 fitControl <- trainControl(method = "repeatedcv", # Cross-validation, default is bootstrap
                            number = 10,
                            repeats = 3,
