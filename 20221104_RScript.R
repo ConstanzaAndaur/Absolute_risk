@@ -113,7 +113,6 @@ summary(glm_mod)
 glm.pred <- predict(glm_mod,
                     newdata = data_test)
 
-## Probabilities with test data ----
 glm.probs <- predict(glm_mod,
                      newdata = data_test,
                      type = "prob",  
