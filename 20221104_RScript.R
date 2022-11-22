@@ -226,3 +226,58 @@ confusionMatrix(data = e1071.pred,
                 #mode = "prec_recall"
                 mode = "everything",
                 positive = "Pos") 
+
+# Evaluation ----
+
+## AUC plot for all five models
+
+rocobj1 <- plot.roc(as.numeric(glm_mod$trainingData$.outcome=='Pos'),
+                    aggregate(Pos~rowIndex,glm_mod$pred,mean)[,'Pos'], 
+                    print.auc=TRUE)
+
+rocobj2 <- lines.roc(as.numeric(rf_mod.1$trainingData$.outcome=='Pos'),
+                     aggregate(Pos~rowIndex,rf_mod.1$pred,mean)[,'Pos'])
+
+rocobj3 <- lines.roc(as.numeric(rf_mod.2$trainingData$.outcome=='Pos'),
+                     aggregate(Pos~rowIndex,rf_mod.2$pred,mean)[,'Pos'])
+
+rocobj4 <- lines.roc(as.numeric(svm_mod.1$trainingData$.outcome=='Pos'),
+                     aggregate(Pos~rowIndex,svm_mod.1$pred,mean)[,'Pos'])
+
+rocobj5 <- lines.roc(as.numeric(svm_mod.2$trainingData$.outcome=='Pos'),
+                     aggregate(Pos~rowIndex,svm_mod.2$pred,mean)[,'Pos'])
+
+roc.list <- list(glm = rocobj1, rf1 = rocobj2, rf2 = rocobj3, 
+                 svm1 = rocobj4, svm2 = rocobj5)
+# extract AUC
+roc.list %>% 
+  map(~tibble(AUC = .x$auc)) %>% 
+  bind_rows(.id = "name") -> data.auc
+
+roc.list[["svm2"]][["ci"]] #to find CI
+
+# generate labels
+data.auc %>% 
+  mutate(label_long=paste0(name,", AUC = ", paste(round(AUC,2))),
+         label_AUC=paste0("AUC = ", paste(round(AUC,2)))) -> data.labels
+
+# plot on a single plot with AUC in labels
+ggroc(roc.list, legacy.axes = TRUE) +
+  ggtitle("Area Under the Curve") +
+  scale_color_discrete(labels=data.labels$label_long) +
+  labs(x = "1 - Specificity / False positive rate", y = "Sensitivity / True positive rate",
+       colour = "Model") +
+  geom_abline() +
+  theme_light() +
+  theme(
+    legend.position = c(0.9, 0.1),
+    legend.justification = c("right", "bottom"),
+    legend.box.just = "right",
+    legend.margin = margin(6, 6, 6, 6), 
+    legend.text = element_text(size = 9, colour = "black", face="bold"), 
+    legend.title = element_text(colour="black", size=10, 
+                                face="bold"), 
+    legend.background = element_rect(fill="lightblue",
+                                     size=0.5, linetype="solid", 
+                                     colour ="darkblue"))
+ggsave("plot_AUC.pdf", width = 20, height = 20, units = "cm")
