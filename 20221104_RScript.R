@@ -1,5 +1,6 @@
 # Absolute risk in DVT
 # Constanza L. Andaur Navarro
+# Maerziya Yusufujiang
 
 # Clear existing data and graphics
 rm(list=ls())
